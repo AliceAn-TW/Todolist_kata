@@ -158,4 +158,4 @@ const requestListener = (request, response) => {
 };
 
 const server = http.createServer(requestListener);
-server.listen(process.env.POST || 3005);
+server.listen(process.env.PORT || 3005);
