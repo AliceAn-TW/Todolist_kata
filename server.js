@@ -2,26 +2,15 @@
 const http = require("http");
 //2. 使用外部npm套件 uuid
 const { v4: uuidv4 } = require("uuid");
-//3. 自製一個處理錯誤的套件
+//3. 自製一個處理資料的套件
+const headers = require("./config");
+const todos = require("./database");
 const errorHandle = require("./errorHandle");
-
-const todos = [
-  // { title: "開學典禮", id: uuidv4() },
-  // { title: "課前預習", id: uuidv4() },
-  // { title: "課後筆記", id: uuidv4() },
-];
-// 暫存在node.js的記憶體上進行讀取
+const successHandle = require("./successHandle");
 
 const requestListener = (request, response) => {
   //   console.log(request.url);
   //   console.log(request.method);
-  const headers = {
-    "Access-Control-Allow-Headers":
-      "Content-Type, Authorization, Content-Length, X-Requested-With",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "PATCH, POST, GET,OPTIONS,DELETE",
-    "Content-Type": "application/json",
-  };
 
   let body = "";
   //等待 req.body 接收成功，透過 on('end) 觸發
@@ -33,14 +22,7 @@ const requestListener = (request, response) => {
   // 設定首頁路徑
   //GET 取得代辦事項
   if (request.url == "/todos" && request.method == "GET") {
-    response.writeHead(200, headers);
-    response.write(
-      JSON.stringify({
-        status: "success",
-        data: todos,
-      }),
-    );
-    response.end();
+    successHandle(response);
   }
   //POST 新增代辦事項
   else if (request.url == "/todos" && request.method == "POST") {
@@ -59,14 +41,7 @@ const requestListener = (request, response) => {
           };
           // console.log(todo); //小步測試
           todos.push(todo);
-          response.writeHead(200, headers);
-          response.write(
-            JSON.stringify({
-              status: "success",
-              data: todos,
-            }),
-          );
-          response.end();
+          successHandle(response);
         } else {
           errorHandle(response);
         }
@@ -78,14 +53,7 @@ const requestListener = (request, response) => {
   //DELETE 刪除所有代辦
   else if (request.url == "/todos" && request.method == "DELETE") {
     todos.length = 0;
-    response.writeHead(200, headers);
-    response.write(
-      JSON.stringify({
-        status: "success",
-        data: todos,
-      }),
-    );
-    response.end();
+    successHandle(response);
   }
   //DELETE 刪除單一代辦
   else if (request.url.startsWith("/todos/") && request.method == "DELETE") {
@@ -97,14 +65,7 @@ const requestListener = (request, response) => {
     //判斷是否刪除資料
     if (index !== -1) {
       todos.splice(index, 1);
-      response.writeHead(200, headers);
-      response.write(
-        JSON.stringify({
-          status: "success",
-          data: todos,
-        }),
-      );
-      response.end();
+      successHandle(response);
     } else {
       errorHandle(response);
     }
@@ -123,14 +84,7 @@ const requestListener = (request, response) => {
           //修改 title
           todos[index].title = todo;
           //修改好後回傳 todos
-          response.writeHead(200, headers);
-          response.write(
-            JSON.stringify({
-              status: "success",
-              data: todos,
-            }),
-          );
-          response.end();
+          successHandle(response);
         } else {
           errorHandle(response);
         }
@@ -141,8 +95,9 @@ const requestListener = (request, response) => {
   }
   //OPTIONS 支援跨網域
   else if (request.method == "OPTIONS") {
-    response.writeHead(200, headers);
-    response.end();
+    successHandle(response);
+    // response.writeHead(200, headers);
+    // response.end();
   }
   //4XX 發生錯誤
   else {
